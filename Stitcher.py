@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 
 class Stitcher:
 
-    def __init__(self, images):
+    def __init__(self, im1, im2):
 
-        self.images = images
+        image1 = plt.imread(im1)
+        image2 = plt.imread(im2)
+        self.im1 = image1.mean(axis=2)
+        self.im2 = image2.mean(axis=2)
 
     def convolve(self, g, h):
 
@@ -178,10 +181,11 @@ class Stitcher:
             test = matches[n:, :]
 
             # 2. Compute a homography based on these points using the methods given above
-            H = self.solve_for_H(sub[:, 0:1], sub[:, 2:3])
+            H = self.solve_for_H(sub[:, 0:2], sub[:, 2:])
 
             # 3. Apply this homography to the remaining points that were not randomly selected
-            test_p = test[:, 0:1]
+            test_p = test[:, 0:2]
+            test_p = np.column_stack((test_p, np.ones(len(test_p))))
             uv_p = (H @ test_p.T).T
             test_u = uv_p[:, 0] / uv_p[:, 2]
             test_v = uv_p[:, 1] / uv_p[:, 2]
@@ -189,7 +193,7 @@ class Stitcher:
             # 4. Compute the residual between observed and predicted feature locations
             R = np.zeros_like(test_u)
             for i in range(len(test_p)):
-                R[i] = np.sqrt((test_u[i] - test_p[i, 2]) ** 2 + (test_v[i] - test_p[i, 3]) ** 2)
+                R[i] = np.sqrt((test_u[i] - test[i, 2]) ** 2 + (test_v[i] - test[i, 3]) ** 2)
 
             # 5. Flag predictions that lie within a predefined distance r from observations as inliers
             inl = np.zeros_like(R)
