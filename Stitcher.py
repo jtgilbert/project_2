@@ -6,10 +6,10 @@ class Stitcher:
 
     def __init__(self, im1, im2):
 
-        image1 = plt.imread(im1)
-        image2 = plt.imread(im2)
-        self.im1 = image1.mean(axis=2)
-        self.im2 = image2.mean(axis=2)
+        self.image1 = plt.imread(im1)
+        self.image2 = plt.imread(im2)
+        self.im1 = self.image1.mean(axis=2)
+        self.im2 = self.image2.mean(axis=2)
 
     def convolve(self, g, h):
 
@@ -214,4 +214,20 @@ class Stitcher:
                     num_inliers = num_inl
 
         return H_best, num_inliers
+
+    def stitch(self, i1, i2):
+        # with both images in same coordinates,
+        # find u min and max and v min and max to get shape out output array
+        out_array = np.zeros_like()
+
+        for v in range(out_array.shape[1]):
+            for u in range(out_array.shape[0]):
+                if i1[v, u] == 0. and i2[v, u] != 0.:
+                    out_array[v, u] = i2[v, u]
+                elif i1[v, u] != 0. and i2[v, u] == 0.:
+                    out_array[v, u] = i1[v,u]
+                else:
+                    out_array[v, u] = (i2[v, u] + i1[v, u])/2
+
+        return out_array
 
